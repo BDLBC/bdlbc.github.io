@@ -16,7 +16,7 @@ There should be whitespace between paragraphs. We recommend including a README, 
 
 ### Small image
 
-![Rick](https://es.wallpapers.com/rick-sanchez)
+![Rick](/assets/images/rick-wallpaper.jpg)
 
 
 
