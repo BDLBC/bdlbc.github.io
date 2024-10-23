@@ -1,5 +1,5 @@
 ---
-layout
+Bienvenido a mi cuaderno público.
 ---
 
 [Plantilla](./plantilla.md).
