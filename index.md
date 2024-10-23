@@ -12,10 +12,6 @@ There should be whitespace between paragraphs. We recommend including a README, 
 
 ## Muy pronton estaré preparado para traer todo lo que tengo pensado.
 
-
-
-### Small image
-
 ![Rick](/assets/images/rick-wallpaper.jpg)
 
 
