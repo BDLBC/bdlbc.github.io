@@ -3,7 +3,7 @@ title: Enumerando AD
 published: true
 ---
 
-![Imagen AD](https://github.com/BDLBC/bdlbc.github.io/blob/assets/WindowsAD.jpg)
+![Imagen AD](/assets/WindowsAD.jpg)
 
 # Enumerando el AD
 
