@@ -3,7 +3,7 @@ title: Enumerando AD
 published: true
 ---
 
-![Imagen AD](/_site/assets/WindowsAD.jpg)
+![Imagen AD](https://github.com/BDLBC/bdlbc.github.io/blob/master/_site/assets/WindowsAD.jpg)
 
 # Enumerando el AD
 
@@ -12,7 +12,7 @@ El mejor sitio para hacer la búsqueda (en mi opinión) es [Hurrican Electric]ht
 
 ## Busqueda de información pública (archivos):
 Podemos encontrar todo tipo de archivos publicados por una empresa, para ello debemos buscar en nuestro buscador el tipode archivo y la url en la que podríamos buscarlo. Estos son algunos de los tipos de archivos que podemos buscar [Tipos de archivos](https://developers.google.com/search/docs/crawling-indexing/indexable-file-types), prefiero no seguir indagando en esto porque creo que lo mejor será crear una sección solo para el OSINT.
-![Imagen DuckDuck go](/_site/assets/PDF_search.png)
+![Imagen DuckDuck go](https://github.com/BDLBC/bdlbc.github.io/blob/master/_site/assets/PDF_search.png)
 
 ## Busquda de credenciales filtradas:
 A menudo en la enumeración del Direcotrio Activo veremos que las mismas herramientas que utilizan los pentesters también son utilizadas por el blueteam/equipo defensivo, un ejemplo de ello es esta herramienta para la [busqueda de credenciales filtradas](https://dehashed.com/), en ella podemos ver si las contraseñas asociadas a nuestras cuentas están filtradas, tengamos en cuenta que aunque nuestro dominio no sea vulnerado peude que si los correos privados de los trabajadores de la empresa y en caso de que se reutilicen las credenciales ya se habría vulnerado un usuario de dominio.
@@ -25,7 +25,7 @@ A menudo en la enumeración del Direcotrio Activo veremos que las mismas herrami
 
 En este [repo](https://www.hackingarticles.in/a-detailed-guide-on-kerbrute/) podemos encontrar un guía sobre la descarga, configuración y uso de la herramienta 
 
-![Teoría de Kerbrute](/_site/assets/kerbrute.png)
+![Teoría de Kerbrute](https://github.com/BDLBC/bdlbc.github.io/blob/master/_site/assets/kerbrute.png)
 
 ```Python 
 Happy Hacking
