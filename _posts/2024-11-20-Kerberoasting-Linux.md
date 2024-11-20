@@ -4,7 +4,7 @@ published: true
 ---
 
 
-![Imagen_Kerberos](master/_site/assets/Kerberos.jpg)
+![Imagen_Kerberos](/assets/Kerberos.jpg)
 
 # Kerberos
 
