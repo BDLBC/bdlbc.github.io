@@ -1,13 +1,587 @@
----
-layout: default
----
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jorge · Redes y Seguridad — CV interactivo</title>
+<meta name="description" content="Ingeniero de redes y seguridad: FortiGate, Palo Alto, A10, F5 y seguridad ofensiva. CV interactivo en formato terminal.">
 
-<ul>
-    {% for post in paginator.posts %}
-      <li>
-          <h2><a href="{{ post.url | prepend: site.baseurl | replace: '//', '/' }}">{{ post.title }}</a></h2>
-          <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time>
-          <p>{{ post.content | strip_html | truncatewords:50 }}</p>
-      </li>
-    {% endfor %}
-</ul>
+<!-- ====== EDITA ESTO: tipografías (se cargan de Google Fonts) ====== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+/* ================== TOKENS DE DISEÑO (cámbialos a tu gusto) ================== */
+:root{
+  --bg:#060a06;
+  --panel:rgba(8,18,10,0.74);
+  --panel-solid:#0a130c;
+  --green:#2bff88;        /* verde principal (brillante) */
+  --green-2:#19c46a;      /* verde medio */
+  --green-dim:#0e7a47;    /* verde apagado / bordes */
+  --ink:#bdf5cf;          /* texto cuerpo */
+  --ink-dim:#6fae87;      /* texto atenuado */
+  --amber:#ffcf4d;        /* avisos / "en curso" */
+  --white:#e9fff1;
+  --border:rgba(43,255,136,0.22);
+  --border-strong:rgba(43,255,136,0.45);
+  --maxw:980px;
+  --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --display:'Share Tech Mono', var(--mono);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:16px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:var(--green);text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:var(--green);color:#04140a}
+
+/* fondo Matrix */
+#matrix{
+  position:fixed; inset:0; z-index:0;
+  width:100%; height:100%;
+  opacity:0.55;
+  pointer-events:none;
+}
+/* viñeta para legibilidad */
+#scrim{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%, rgba(6,10,6,0.35), rgba(6,10,6,0.86) 70%);
+}
+.wrap{position:relative; z-index:2; max-width:var(--maxw); margin:0 auto; padding:0 22px}
+
+/* ============================ NAV / MENÚ ============================ */
+header.nav{
+  position:fixed; top:0; left:0; right:0; z-index:20;
+  background:rgba(5,9,6,0.82);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--maxw); margin:0 auto; padding:10px 22px;
+  display:flex; align-items:center; gap:18px;
+}
+.brand{
+  font-family:var(--display); color:var(--green); font-size:15px;
+  white-space:nowrap; letter-spacing:.5px;
+}
+.brand .blink{color:var(--green); animation:blink 1.1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+nav.menu{
+  margin-left:auto;
+  display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
+}
+nav.menu::-webkit-scrollbar{display:none}
+nav.menu a{
+  color:var(--ink); font-size:13.5px; white-space:nowrap;
+  padding:5px 10px; border:1px solid transparent; border-radius:6px;
+}
+nav.menu a::before{content:"~$ "; color:var(--green-2)}
+nav.menu a:hover{
+  color:var(--green); border-color:var(--border-strong);
+  background:rgba(43,255,136,0.06); text-decoration:none;
+}
+
+/* ============================ HERO / TERMINAL ============================ */
+#inicio{padding:120px 0 70px}
+.term{
+  background:var(--panel);
+  border:1px solid var(--border-strong);
+  border-radius:12px;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.4), 0 30px 80px -40px rgba(43,255,136,0.25);
+  overflow:hidden;
+  backdrop-filter:blur(3px);
+}
+.term-bar{
+  display:flex; align-items:center; gap:9px;
+  padding:11px 14px; border-bottom:1px solid var(--border);
+  background:rgba(0,0,0,0.25);
+}
+.dot{width:12px;height:12px;border-radius:50%}
+.term-title{
+  margin-left:8px; color:var(--ink-dim); font-size:12.5px;
+}
+.term-body{padding:22px 22px 18px; min-height:330px}
+.line{white-space:pre-wrap; font-size:14px; line-height:1.75; margin:0}
+.pr{color:var(--green)} .pa{color:#5db4ff} .ok{color:var(--green)} .dim{color:var(--ink-dim)} .amb{color:var(--amber)}
+#screen .out{color:var(--ink); margin-bottom:2px}
+.cmdline{display:flex; align-items:center; gap:8px; margin-top:14px}
+.cmdline .pr{flex:0 0 auto}
+#cmd{
+  flex:1; background:transparent; border:none; outline:none;
+  color:var(--white); font-family:var(--mono); font-size:14px; caret-color:var(--green);
+}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  font-size:12.5px; color:var(--green-2);
+  background:rgba(43,255,136,0.05);
+  border:1px solid var(--border); border-radius:6px;
+  padding:5px 11px; cursor:pointer;
+}
+.chip:hover{background:rgba(43,255,136,0.12); color:var(--green)}
+.hint{margin-top:14px; color:var(--ink-dim); font-size:12px}
+
+/* ============================ SECCIONES ============================ */
+section.block{padding:54px 0}
+.eyebrow{
+  font-family:var(--display); color:var(--green-2); font-size:13.5px;
+  letter-spacing:.5px; margin:0 0 8px;
+}
+.eyebrow .pa{color:#5db4ff}
+h2.sec{
+  font-family:var(--display); color:var(--white); font-weight:400;
+  font-size:clamp(22px,4vw,30px); line-height:1.2; margin:0 0 10px; letter-spacing:.5px;
+}
+.lead{color:var(--ink-dim); font-size:15px; max-width:680px; margin:0 0 8px}
+
+/* tarjetas de capacidad */
+.cap{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:12px; padding:20px 22px; margin-top:18px;
+  backdrop-filter:blur(2px);
+  opacity:0; transform:translateY(16px);
+  transition:opacity .6s ease, transform .6s ease;
+}
+.cap.in{opacity:1; transform:none}
+.cap .path{
+  font-family:var(--display); color:var(--green-2); font-size:13px; margin:0 0 6px;
+}
+.cap .path .pa{color:#5db4ff}
+.cap h3{
+  color:var(--white); font-weight:500; font-size:18px; margin:0 0 10px;
+}
+.plain{color:var(--ink); font-size:15px; margin:0 0 12px}
+.plain b{color:var(--green); font-weight:500}
+.tech{
+  color:var(--ink-dim); font-size:13.5px; margin:0 0 16px;
+  border-left:2px solid var(--green-dim); padding-left:12px;
+}
+.tech .k{color:var(--green-2)}
+.inc{
+  background:rgba(43,255,136,0.045);
+  border:1px solid var(--border);
+  border-radius:9px; padding:14px 16px;
+}
+.inc .tag{
+  display:inline-block; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--amber); border:1px solid rgba(255,207,77,0.4); border-radius:5px;
+  padding:2px 8px; margin-bottom:9px;
+}
+.inc p{margin:0; font-size:14px; color:var(--ink)}
+.inc .res{color:var(--green); margin-top:8px}
+.inc .res::before{content:"└─ resuelto: "; color:var(--green-2)}
+
+/* ============================ FORMACIÓN ============================ */
+.certs{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:20px}
+.cert{
+  background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+}
+.cert .st{font-size:12px; margin-bottom:6px}
+.cert .st.wip{color:var(--amber)} .cert .st.done{color:var(--green)}
+.cert h4{margin:0 0 4px; color:var(--white); font-weight:500; font-size:15px}
+.cert p{margin:0; color:var(--ink-dim); font-size:13px}
+
+/* ============================ FABRICANTES (el cuadrado) ============================ */
+#fabricantes .square{
+  border:1px solid var(--border-strong);
+  border-radius:14px;
+  background:var(--panel);
+  padding:22px;
+  margin-top:20px;
+}
+.square .cap-bar{
+  font-family:var(--display); color:var(--green-2); font-size:13px;
+  margin:0 0 16px; border-bottom:1px dashed var(--border); padding-bottom:12px;
+}
+.vendors{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px}
+.vendor{
+  border:1px solid var(--border); border-radius:10px;
+  padding:18px 14px; text-align:center;
+  background:rgba(0,0,0,0.22);
+  transition:border-color .25s ease, transform .25s ease, background .25s ease;
+}
+.vendor:hover{border-color:var(--border-strong); transform:translateY(-3px); background:rgba(43,255,136,0.06)}
+.vendor .v-name{font-family:var(--display); color:var(--white); font-size:16px; letter-spacing:.5px}
+.vendor .v-sub{color:var(--ink-dim); font-size:12px; margin-top:4px}
+
+/* ============================ CONTACTO / FOOTER ============================ */
+#contacto{padding:54px 0 30px}
+.contact-box{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:22px 24px;
+}
+.contact-box .row{display:flex; gap:10px; flex-wrap:wrap; font-size:14px; margin:6px 0}
+.contact-box .row .key{color:var(--green-2); min-width:96px}
+footer.foot{
+  text-align:center; color:var(--ink-dim); font-size:12px;
+  padding:34px 0 26px; border-top:1px solid var(--border); margin-top:40px;
+}
+footer.foot .pr{color:var(--green-2)}
+
+/* ============================ RESPONSIVE ============================ */
+@media (max-width:640px){
+  body{font-size:15px}
+  #inicio{padding:104px 0 50px}
+  .term-body{min-height:300px; padding:18px}
+  .brand{font-size:13px}
+  nav.menu a{font-size:12.5px; padding:5px 8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important; transition:none !important}
+  html{scroll-behavior:auto}
+  .cap{opacity:1; transform:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrix" aria-hidden="true"></canvas>
+<div id="scrim" aria-hidden="true"></div>
+
+<!-- ============================ MENÚ ============================ -->
+<header class="nav">
+  <div class="nav-inner">
+    <span class="brand">jorge@infosec:~<span class="blink">█</span></span>
+    <nav class="menu" aria-label="Menú principal">
+      <a href="#inicio">whoami</a>
+      <a href="#stack">stack</a>
+      <a href="#formacion">formación</a>
+      <a href="#fabricantes">fabricantes</a>
+      <a href="#contacto">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ============================ HERO TERMINAL ============================ -->
+<section id="inicio" class="wrap">
+  <div class="term" role="region" aria-label="Terminal interactiva">
+    <div class="term-bar">
+      <span class="dot" style="background:#ff5f56"></span>
+      <span class="dot" style="background:#ffbd2e"></span>
+      <span class="dot" style="background:#27c93f"></span>
+      <span class="term-title">bash — jorge.github.io</span>
+    </div>
+    <div class="term-body">
+      <div id="screen"></div>
+      <div class="cmdline">
+        <span class="pr" id="prompt">jorge@infosec:~$</span>
+        <input id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false"
+               aria-label="Escribe un comando" placeholder="escribe 'help' y pulsa Enter…">
+      </div>
+      <div class="chips" id="chips">
+        <span class="chip" data-cmd="whoami">whoami</span>
+        <span class="chip" data-cmd="skills">skills</span>
+        <span class="chip" data-cmd="experiencia">experiencia</span>
+        <span class="chip" data-cmd="certs">certs</span>
+        <span class="chip" data-cmd="fabricantes">fabricantes</span>
+        <span class="chip" data-cmd="contacto">contacto</span>
+        <span class="chip" data-cmd="clear">clear</span>
+      </div>
+      <p class="hint">¿No eres técnico? Usa el menú de arriba o pulsa los botones. ¿Lo eres? Escribe comandos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ STACK / PROFUNDIDAD ============================ -->
+<section id="stack" class="block wrap">
+  <p class="eyebrow"><span class="pr">jorge@infosec</span>:<span class="pa">~/redes</span>$ ls -R</p>
+  <h2 class="sec">Lo que puedo hacer a nivel de redes y seguridad</h2>
+  <p class="lead">Cada bloque explica el problema en cristiano y, debajo, una incidencia real del tipo que resuelvo. Cuanto más bajas, más profundo entramos.</p>
+
+  <!-- 1 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/redes/sd-wan</span>$ cat README.md</p>
+    <h3>Arquitectura de red y SD-WAN multi-sede</h3>
+    <p class="plain">Conecto delegaciones, centros y nube de forma que el tráfico viaje <b>por el mejor camino disponible</b> y, si uno cae, salte a otro sin que nadie lo note.</p>
+    <p class="tech">FortiGate hub-and-spoke · IPSec (AES-256/SHA-512) · <span class="k">eBGP</span> sobre SD-WAN · route-maps con community tagging · prefix-lists · health-checks por SLA.</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>Una sede nueva sufre cortes intermitentes contra la central. La causa: en un IPSec de doble túnel, el <i>anti-replay</i> descarta paquetes por enrutado asimétrico (ECMP) — entran por un túnel y vuelven por otro.</p>
+      <p class="res">ajuste de anti-replay y afinado de SD-WAN/BGP para forzar simetría de la sesión. Conectividad estable y sin pérdida.</p>
+    </div>
+  </article>
+
+  <!-- 2 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/redes/firewall-ngfw</span>$ cat README.md</p>
+    <h3>Firewalls de nueva generación (Palo Alto)</h3>
+    <p class="plain">Defino <b>qué aplicaciones y usuarios</b> pueden hablar con qué, no solo puertos. Y mantengo los cortafuegos parcheados frente a vulnerabilidades críticas sin tirar el servicio.</p>
+    <p class="tech">PAN-OS · <span class="k">App-ID</span> · User-ID · HA activo/pasivo · GlobalProtect · gestión de CVE y upgrades escalonados.</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>Aparece un fallo crítico de desbordamiento de búfer (CVSS 9.3) en un PA-3220. No puedo parar la producción para parchear de golpe.</p>
+      <p class="res">mitigación inmediata aplicando una firma IPS como contención, y upgrade de la pareja HA por fases (failover controlado) sin corte para el usuario.</p>
+    </div>
+  </article>
+
+  <!-- 3 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/redes/adc-l7</span>$ cat README.md</p>
+    <h3>Balanceo y entrega de aplicaciones (A10 / F5)</h3>
+    <p class="plain">Reparto la carga entre servidores para que una web o servicio <b>aguante picos y no se caiga</b>, y gestiono el cifrado HTTPS de extremo a extremo.</p>
+    <p class="tech">A10 Thunder ADC · F5 BIG-IP · scripting <span class="k">aFleX</span> para enrutado L7 · SSL offload · SNI / Server Name Regex List · ciclo de certificados (incl. PKCS#7 + clave privada).</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>Caduca el certificado SSL de una VIP en producción. Hay que renovarlo en el A10 — con su flujo PKCS#7 y clave privada — sin cortar el tráfico de los usuarios conectados.</p>
+      <p class="res">renovación e instalación con la VIP en activo, validando cadena y SNI. Cero ventana de caída.</p>
+    </div>
+  </article>
+
+  <!-- 4 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/redes/nac</span>$ cat README.md</p>
+    <h3>Control de acceso a la red (NAC)</h3>
+    <p class="plain">Controlo <b>quién y qué se enchufa</b> a la red. Si aparece un equipo que no debería estar, se detecta y se aísla solo.</p>
+    <p class="tech">Forescout NAC · perfilado de dispositivos · segmentación por VLAN · políticas de cuarentena automática.</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>Un portátil no gestionado se conecta a una VLAN sensible. Es un riesgo de entrada lateral hacia sistemas críticos.</p>
+      <p class="res">el NAC lo perfila como no autorizado y lo manda a cuarentena automáticamente; el equipo de seguridad recibe el aviso al instante.</p>
+    </div>
+  </article>
+
+  <!-- 5 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/seguridad/respuesta-incidentes</span>$ cat README.md</p>
+    <h3>Respuesta a incidentes y forense de red</h3>
+    <p class="plain">Cuando algo huele mal, <b>busco la prueba en el tráfico</b>, contengo el problema y dejo el incidente documentado para que no vuelva a pasar.</p>
+    <p class="tech">FortiAnalyzer · análisis de <span class="k">pcap</span> · detección de exposición · contención · notas técnicas formales con diagrama.</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>Una regla mal definida deja hosts OT visibles a escaneos RDP desde Internet. También aparece un intento de explotación contra un endpoint REST de F5 (tipo CVE-2022-1388).</p>
+      <p class="res">detección en FortiAnalyzer, corte de la exposición, y nota técnica formal con cronología y diagrama para auditoría.</p>
+    </div>
+  </article>
+
+  <!-- 6 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/seguridad/ofensiva</span>$ cat README.md</p>
+    <h3>Seguridad ofensiva (pentest / CTF)</h3>
+    <p class="plain">Pienso como un atacante para <b>encontrar los agujeros antes que ellos</b>. Lo que aprendo rompiendo lo aplico defendiendo.</p>
+    <p class="tech">Burp Suite · inyección SQL (UNION / blind) · brute-force con Hydra/ZAP · forense de memoria con <span class="k">Volatility 3</span> (p. ej. KeePass, CVE-2023-32784) · ruta CPTS de HackTheBox.</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>En una auditoría web, un formulario es vulnerable a inyección SQL y permite extraer credenciales de la base de datos.</p>
+      <p class="res">demostración del impacto de forma controlada y recomendación de remediación (consultas parametrizadas y WAF), priorizada por riesgo real.</p>
+    </div>
+  </article>
+
+  <!-- 7 -->
+  <article class="cap">
+    <p class="path"><span class="pa">~/automatizacion</span>$ cat README.md</p>
+    <h3>Automatización y documentación</h3>
+    <p class="plain">Lo repetitivo lo <b>automatizo con scripts</b>, y cada cambio importante queda documentado con su procedimiento de vuelta atrás.</p>
+    <p class="tech">Python · API XML/REST de los fabricantes · cambios masivos sin consola central · documentación NT con checklist de verificación y rollback.</p>
+    <div class="inc">
+      <span class="tag">Incidencia que resuelvo</span>
+      <p>Hay que actualizar el perfil de envío de logs en más de 1.800 políticas de un Palo Alto — y no hay Panorama para hacerlo de una vez.</p>
+      <p class="res">script en Python contra la API XML que aplica el cambio en bloque, con verificación previa y commit controlado. Horas de trabajo manual evitadas.</p>
+    </div>
+  </article>
+</section>
+
+<!-- ============================ FORMACIÓN / CERTS ============================ -->
+<section id="formacion" class="block wrap">
+  <p class="eyebrow"><span class="pr">jorge@infosec</span>:<span class="pa">~</span>$ ls certs/</p>
+  <h2 class="sec">Formación y certificación</h2>
+  <div class="certs">
+    <div class="cert">
+      <div class="st wip">[~] en curso</div>
+      <h4>CPTS — HackTheBox Academy</h4>
+      <p>Ruta Penetration Tester. Seguridad ofensiva aplicada.</p>
+    </div>
+    <div class="cert">
+      <div class="st wip">[~] en curso</div>
+      <h4>Grado en Redes y Seguridad — UNIR</h4>
+      <p>Criptografía, redes, sistemas y seguridad.</p>
+    </div>
+    <div class="cert">
+      <div class="st done">[✓] experiencia real</div>
+      <h4>Fortinet · Palo Alto · A10</h4>
+      <p>Diseño y operación en producción enterprise.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FABRICANTES (el cuadrado) ============================ -->
+<section id="fabricantes" class="block wrap">
+  <p class="eyebrow"><span class="pr">jorge@infosec</span>:<span class="pa">~</span>$ cat fabricantes.json</p>
+  <h2 class="sec">Fabricantes con los que trabajo</h2>
+  <p class="lead">Tecnologías que diseño, opero y aseguro en el día a día.</p>
+  <div class="square">
+    <p class="cap-bar">// stack de fabricantes — producción enterprise</p>
+    <div class="vendors">
+      <div class="vendor"><div class="v-name">FortiGate</div><div class="v-sub">SD-WAN · IPSec · BGP</div></div>
+      <div class="vendor"><div class="v-name">Palo Alto</div><div class="v-sub">PAN-OS · App-ID · HA</div></div>
+      <div class="vendor"><div class="v-name">A10</div><div class="v-sub">Thunder ADC · aFleX</div></div>
+      <div class="vendor"><div class="v-name">F5</div><div class="v-sub">BIG-IP · LTM</div></div>
+      <div class="vendor"><div class="v-name">Forescout</div><div class="v-sub">NAC · visibilidad</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CONTACTO ============================ -->
+<section id="contacto" class="wrap">
+  <p class="eyebrow"><span class="pr">jorge@infosec</span>:<span class="pa">~</span>$ cat contacto.txt</p>
+  <h2 class="sec">Hablemos</h2>
+  <div class="contact-box">
+    <!-- ====== EDITA ESTO con tus datos reales ====== -->
+    <div class="row"><span class="key">email</span><a href="mailto:tu-email@ejemplo.com">tu-email@ejemplo.com</a></div>
+    <div class="row"><span class="key">github</span><a href="https://github.com/tu-usuario" target="_blank" rel="noopener">github.com/tu-usuario</a></div>
+    <div class="row"><span class="key">linkedin</span><a href="https://linkedin.com/in/tu-perfil" target="_blank" rel="noopener">linkedin.com/in/tu-perfil</a></div>
+    <div class="row"><span class="key">ubicación</span><span>Cantabria, España · remoto</span></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot wrap">
+  <span class="pr">jorge@infosec:~$</span> exit &nbsp;·&nbsp; hecho con HTML, CSS y un poco de JavaScript &nbsp;·&nbsp; © <span id="year"></span>
+</footer>
+
+<script>
+/* ============================ FONDO MATRIX ============================ */
+(function(){
+  var canvas = document.getElementById('matrix');
+  var ctx = canvas.getContext('2d');
+  var glyphs = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789@#$%&<>=/\\{}[]ABCDEF'.split('');
+  var fontSize = 15, cols = 0, drops = [];
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols = Math.floor(canvas.width / fontSize);
+    drops = new Array(cols).fill(0).map(function(){ return Math.random()*-50; });
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var last = 0, interval = 55; /* ms entre frames: más alto = más lento y menos CPU */
+  function draw(t){
+    if(t - last >= interval){
+      last = t;
+      ctx.fillStyle = 'rgba(6,10,6,0.10)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.font = fontSize + "px 'Share Tech Mono', monospace";
+      for(var i=0;i<cols;i++){
+        var ch = glyphs[Math.floor(Math.random()*glyphs.length)];
+        var x = i*fontSize, y = drops[i]*fontSize;
+        ctx.fillStyle = Math.random() > 0.975 ? '#c9ffe0' : '#2bff88';
+        ctx.fillText(ch, x, y);
+        if(y > canvas.height && Math.random() > 0.975){ drops[i] = 0; }
+        drops[i]++;
+      }
+    }
+    if(!reduce) requestAnimationFrame(draw);
+  }
+  if(reduce){
+    /* un único fotograma estático */
+    ctx.fillStyle = '#06100a'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.font = fontSize + "px monospace"; ctx.fillStyle = '#143d28';
+    for(var i=0;i<cols;i++){ for(var j=0;j<canvas.height/fontSize;j+=2){
+      ctx.fillText(glyphs[Math.floor(Math.random()*glyphs.length)], i*fontSize, j*fontSize); } }
+  } else {
+    requestAnimationFrame(draw);
+  }
+})();
+
+/* ============================ TERMINAL INTERACTIVA ============================ */
+(function(){
+  var screen = document.getElementById('screen');
+  var input  = document.getElementById('cmd');
+
+  function L(html){ return '<p class="line out">'+html+'</p>'; }
+  var PR = '<span class="pr">jorge@infosec:~$</span> ';
+
+  var responses = {
+    help:
+      L('comandos disponibles:')+
+      L('<span class="ok">whoami</span>      quién soy')+
+      L('<span class="ok">skills</span>      stack técnico')+
+      L('<span class="ok">experiencia</span> trayectoria')+
+      L('<span class="ok">certs</span>       formación')+
+      L('<span class="ok">fabricantes</span> tecnologías que manejo')+
+      L('<span class="ok">contacto</span>    cómo encontrarme')+
+      L('<span class="ok">clear</span>       limpiar pantalla'),
+    whoami:
+      L('Jorge · Ingeniero de Redes y Seguridad')+
+      L('<span class="dim">&gt; Infraestructura enterprise: FortiGate / Palo Alto / A10 / F5</span>')+
+      L('<span class="dim">&gt; Pivotando hacia seguridad ofensiva (CPTS · HackTheBox)</span>'),
+    skills:
+      L('FortiGate  <span class="ok">████████░░</span>  SD-WAN · IPSec · BGP · FortiAnalyzer')+
+      L('Palo Alto  <span class="ok">███████░░░</span>  PAN-OS · App-ID · HA · GlobalProtect')+
+      L('A10 / F5   <span class="ok">██████░░░░</span>  Thunder ADC · BIG-IP · aFleX · L7')+
+      L('Offensive  <span class="ok">█████░░░░░</span>  Burp · Volatility · CTFs · Pentest'),
+    experiencia:
+      L('[2021–hoy] Infraestructura energética enterprise')+
+      L('  · Arquitectura SD-WAN hub-and-spoke multi-sede')+
+      L('  · Respuesta a incidentes (triage CVE, exposición OT)')+
+      L('  · Documentación técnica formal + rollback')+
+      L('<span class="dim">&gt; baja para ver cada área en detalle, con ejemplos de incidencias.</span>'),
+    certs:
+      L('[<span class="amb">~</span>] CPTS — HackTheBox Academy        (en curso)')+
+      L('[<span class="amb">~</span>] Grado Redes y Seguridad — UNIR')+
+      L('[<span class="ok">✓</span>] Experiencia real Fortinet / PAN-OS / A10'),
+    fabricantes:
+      L('FortiGate · Palo Alto · A10 Thunder · F5 BIG-IP · Forescout')+
+      L('<span class="dim">&gt; abre la sección "fabricantes" del menú para el detalle.</span>'),
+    contacto:
+      L('mail      <span class="ok">tu-email@ejemplo.com</span>')+
+      L('github    github.com/tu-usuario')+
+      L('linkedin  /in/tu-perfil')
+  };
+  /* alias */
+  responses.exp = responses.experiencia;
+  responses.menu = responses.help;
+  responses.ls = responses.help;
+
+  function run(raw){
+    var cmd = (raw||'').trim().toLowerCase();
+    if(cmd === '') return;
+    if(cmd === 'clear'){ screen.innerHTML = ''; return; }
+    screen.innerHTML += '<p class="line">'+PR+raw+'</p>';
+    if(responses[cmd]){
+      screen.innerHTML += responses[cmd];
+    } else {
+      screen.innerHTML += L('<span class="amb">comando no encontrado:</span> '+cmd+' — escribe <span class="ok">help</span>');
+    }
+    input.scrollIntoView({block:'nearest'});
+  }
+
+  /* salida inicial */
+  run('whoami');
+
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ run(input.value); input.value=''; }
+  });
+  document.getElementById('chips').addEventListener('click', function(e){
+    var c = e.target.closest('.chip');
+    if(c){ run(c.getAttribute('data-cmd')); input.focus(); }
+  });
+})();
+
+/* ============================ REVELADO AL HACER SCROLL ============================ */
+(function(){
+  var caps = document.querySelectorAll('.cap');
+  if(!('IntersectionObserver' in window)){ caps.forEach(function(c){c.classList.add('in');}); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, {threshold:0.15});
+  caps.forEach(function(c){ io.observe(c); });
+})();
+
+/* año del footer */
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
