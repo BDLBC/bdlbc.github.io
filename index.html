@@ -9,8 +9,27 @@
 <!-- ====== EDITA ESTO: tipografías (se cargan de Google Fonts) ====== -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Share+Tech+Mono&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+/* ===== CONSOLA: amarillo/ámbar sobre negro + tipografía estilo Linux ===== */
+.term{ background:#000; border-color:rgba(255,210,63,0.35);
+  box-shadow:0 0 0 1px rgba(0,0,0,0.5), 0 30px 80px -40px rgba(255,210,63,0.22); }
+.term-bar{ background:#000; border-bottom-color:rgba(255,210,63,0.18); }
+.term, .term *{ font-family:'Ubuntu Mono','DejaVu Sans Mono','Liberation Mono',Menlo,Consolas,monospace; }
+.term-body{ color:#ffd23f; }
+.term .term-title{ color:#9a823a; }
+#screen .line{ color:#ffd23f; }
+.term .pr{ color:#ffe08a; }     /* prompt */
+.term .pa{ color:#c9a93a; }     /* ruta */
+.term .ok{ color:#ffe27a; }     /* barras y ✓ */
+.term .dim{ color:#9a823a; }    /* texto atenuado */
+.term .amb{ color:#ff9d3f; }    /* avisos */
+.term .white{ color:#fff3c4; }  /* énfasis */
+#cmd{ color:#ffe08a; caret-color:#ffd23f;
+  font-family:'Ubuntu Mono','DejaVu Sans Mono','Liberation Mono',monospace; }
+.term .chip{ color:#ffd23f; background:rgba(255,210,63,0.06); border-color:rgba(255,210,63,0.30); }
+.term .chip:hover{ color:#fff3c4; background:rgba(255,210,63,0.14); }
+.term .hint{ color:#9a823a; }
+.term ::selection{ background:#ffd23f; color:#1a1400; }
 <style>
 /* ================== TOKENS DE DISEÑO (cámbialos a tu gusto) ================== */
 :root{
